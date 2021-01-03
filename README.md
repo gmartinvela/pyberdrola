@@ -1,3 +1,3 @@
-# IberdrolaGuard
+# pyberdrola
 
-Python code that reads the Iberdrola consumption of the last day and every minute instant consumption and send it via email if it is necessary to know if something strange happens in a second residence.
+Python code that uses some of the Iberdrola consumption API URLs to read the past day electricity consumption and send an email with this data to the selected user to notify these consumptions, and take care if something strange happens.
