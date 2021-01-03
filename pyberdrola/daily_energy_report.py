@@ -6,7 +6,7 @@ from requests import Session
 import sys
 import smtplib
 from email.message import EmailMessage
-import secrets
+import secrets as ss
 
 pp = pprint.PrettyPrinter(indent=4)
 
@@ -193,26 +193,22 @@ class Iber:
             raise SelectContractException
 
 i = Iber()
-login = Iber.login(i, user = _iber_user, password = _iber_pass)
-Iber.contractselect(i, _iber_contract)
+login = Iber.login(i, user = ss._iber_user, password = ss._iber_pass)
+Iber.contractselect(i, ss._iber_contract)
 icp_status = Iber.icpstatus(i)
+
+#print(icp_status)
+#TEST
 
 (date_value, date_esp_human_readable_value,
      units_value, daily_total_value,
      hours_dict) = Iber.daily_consumption(i)
 
-print(date_value, date_esp_human_readable_value,
-     units_value, daily_total_value,
-     hours_dict)
+#print(date_value, date_esp_human_readable_value,
+#     units_value, daily_total_value,
+#     hours_dict)
 
 current_watts, current_switch, total_watts = Iber.watthourmeter(i)
-
-#if icp_status is False:
-#    icp_status_esp = "DESCONECTADO"
-#elif icp_status is True:
-#    icp_status_esp = "CONECTADO"
-#else:
-#    icp_status_esp = "NO DETERMINADO"
 
 if int(float(daily_total_value)) > 0:
     alarm = True
@@ -247,46 +243,46 @@ for key in hours_dict:
 #    hourly_report_str += repr("A las {0} el consumo fue de: {1:8d} {2}\n").format(key, int(float(hours_dict[key])), units_value)
 
 report_str = """
-Buenos dias,
+     Buenos dias,
 
-Informacion para el contrato {0}.\r\n
-Tu consumo de ayer,
-{1},
-fue de -- {2} {3} --.
+     Informacion para el contrato {0}.\r\n
+     Tu consumo de ayer,
+     {1},
+     fue de -- {2} {3} --.
 
-{52}
+     {52}
 
-El detalle por horas es el siguiente:
-HORA -           - TOTAL (Wh)
- 00:   {4:10} {5:8}
- 01:   {6:10} {7:8}
- 02:   {8:10} {9:8}
- 03:   {10:10} {11:8}
- 04:   {12:10} {13:8}
- 05:   {14:10} {15:8}
- 06:   {16:10} {17:8}
- 07:   {18:10} {19:8}
- 08:   {20:10} {21:8}
- 09:   {22:10} {23:8}
- 10:   {24:10} {25:8}
- 11:   {26:10} {27:8}
- 12:   {28:10} {29:8}
- 13:   {30:10} {31:8}
- 14:   {32:10} {33:8}
- 15:   {34:10} {35:8}
- 16:   {36:10} {37:8}
- 17:   {38:10} {39:8}
- 18:   {40:10} {41:8}
- 19:   {42:10} {43:8}
- 20:   {44:10} {45:8}
- 21:   {46:10} {47:8}
- 22:   {48:10} {49:8}
- 23:   {50:10} {51:8}
+     El detalle por horas es el siguiente:
+     HORA -           - TOTAL (Wh)
+     00:   {4:10} {5:8}
+     01:   {6:10} {7:8}
+     02:   {8:10} {9:8}
+     03:   {10:10} {11:8}
+     04:   {12:10} {13:8}
+     05:   {14:10} {15:8}
+     06:   {16:10} {17:8}
+     07:   {18:10} {19:8}
+     08:   {20:10} {21:8}
+     09:   {22:10} {23:8}
+     10:   {24:10} {25:8}
+     11:   {26:10} {27:8}
+     12:   {28:10} {29:8}
+     13:   {30:10} {31:8}
+     14:   {32:10} {33:8}
+     15:   {34:10} {35:8}
+     16:   {36:10} {37:8}
+     17:   {38:10} {39:8}
+     18:   {40:10} {41:8}
+     19:   {42:10} {43:8}
+     20:   {44:10} {45:8}
+     21:   {46:10} {47:8}
+     22:   {48:10} {49:8}
+     23:   {50:10} {51:8}
 
-Recuerda que esto es aun una PoC.
-Comprueba en la web si estos datos son correctos.
+     Recuerda que esto es aun una PoC.
+     Comprueba en la web si estos datos son correctos.
 
-""".format('212605872', date_esp_human_readable_value.upper(),
+""".format(ss._iber_contract, date_esp_human_readable_value.upper(),
     int(float(daily_total_value)), units_value,
     "*" * graphics_dict['00'] + " " * (10 - graphics_dict['00']), int(float(hours_dict['00'])),
     "*" * graphics_dict['01'] + " " * (10 - graphics_dict['01']), int(float(hours_dict['01'])),
@@ -316,17 +312,18 @@ Comprueba en la web si estos datos son correctos.
 
 #print(report_str)
 
-s = smtplib.SMTP(host = _email_host, port = _email_port)
+s = smtplib.SMTP(host = ss._email_host, port = ss._email_port)
 s.starttls()
-s.login(_email_user, _email_pass)
+s.login(ss._email_user, ss._email_pass)
 
 msg = EmailMessage()
 msg.set_content(report_str)
 
 msg['Subject'] = 'Consumo diario de contadores'
-msg['From'] = _email_from
-msg['To'] = _email_to_list
+msg['From'] = ss._email_from
+msg['To'] = ss._email_to_list
 
 # Send the message via our own SMTP server.
 s.send_message(msg)
+print("DONE!")
 s.quit()
