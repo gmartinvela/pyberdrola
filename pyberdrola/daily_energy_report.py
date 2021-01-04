@@ -192,55 +192,46 @@ class Iber:
         if not json_response["success"]:
             raise SelectContractException
 
-i = Iber()
-login = Iber.login(i, user = ss._iber_user, password = ss._iber_pass)
-Iber.contractselect(i, ss._iber_contract)
-icp_status = Iber.icpstatus(i)
+while True:
+    try:
+        i = Iber()
+        login = Iber.login(i, user = ss._iber_user, password = ss._iber_pass)
+        Iber.contractselect(i, ss._iber_contract)
+        icp_status = Iber.icpstatus(i)
 
-#print(icp_status)
-#TEST
+        (date_value, date_esp_human_readable_value,
+            units_value, daily_total_value,
+            hours_dict) = Iber.daily_consumption(i)
 
-(date_value, date_esp_human_readable_value,
-     units_value, daily_total_value,
-     hours_dict) = Iber.daily_consumption(i)
+        current_watts, current_switch, total_watts = Iber.watthourmeter(i)
 
-#print(date_value, date_esp_human_readable_value,
-#     units_value, daily_total_value,
-#     hours_dict)
+        if int(float(daily_total_value)) > 0:
+            alarm = True
+            alarm_str = "AYER HA HABIDO CONSUMO!"
+        else:
+            alarm = False
+            alarm_str = "Parece que ayer NO hubo ningun consumo."
 
-current_watts, current_switch, total_watts = Iber.watthourmeter(i)
+        max_value = 0
+        max_value_keys_list = []
 
-if int(float(daily_total_value)) > 0:
-    alarm = True
-    alarm_str = "AYER HA HABIDO CONSUMO!"
-else:
-    alarm = False
-    alarm_str = "Parece que ayer NO hubo ningun consumo."
+        for key in hours_dict:
+            if int(float(hours_dict[key])) > max_value:
+                max_value = int(float(hours_dict[key]))
+            else:
+                pass
 
-max_value = 0
-max_value_keys_list = []
-for key in hours_dict:
-    #print("{0}: {1:8d} {2}".format(key, int(float(hours_dict[key])), units_value))
-    if int(float(hours_dict[key])) > max_value:
-        max_value = int(float(hours_dict[key]))
-    else:
-        pass
-    #xstr += repr("A las {0} el consumo fue de: {1:8d} {2}\n").format(key, int(float(hours_dict[key])), units_value)
-#max_value
-dec_value = round(max_value / 10)
-graphics_dict = {}
-for key in hours_dict:
-    if dec_value != 0:
-        pos = round(int(float(hours_dict[key]))/dec_value)
-    else:
-        pos = 0
-    #print("{0}: {1:10} {2:8d} {3}".format(key, "*" * pos, int(float(hours_dict[key])), units_value))
-    graphics_dict[key] = pos
-
-#hourly_report_str = ""
-#for key in hours_dict:
-#    #print("A las {0} el consumo fue de: {1:8d} {2}".format(key, int(float(hours_dict[key])), units_value))
-#    hourly_report_str += repr("A las {0} el consumo fue de: {1:8d} {2}\n").format(key, int(float(hours_dict[key])), units_value)
+        dec_value = round(max_value / 10)
+        graphics_dict = {}
+        for key in hours_dict:
+            if dec_value != 0:
+                pos = round(int(float(hours_dict[key]))/dec_value)
+            else:
+                pos = 0
+            graphics_dict[key] = pos
+    except:
+        continue
+    break
 
 report_str = """
      Buenos dias,
@@ -319,7 +310,7 @@ s.login(ss._email_user, ss._email_pass)
 msg = EmailMessage()
 msg.set_content(report_str)
 
-msg['Subject'] = 'Consumo diario de contadores'
+msg['Subject'] = 'Tu consumo electrico de ayer'
 msg['From'] = ss._email_from
 msg['To'] = ss._email_to_list
 
